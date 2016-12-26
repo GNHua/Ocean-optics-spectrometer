@@ -15,7 +15,7 @@ from matplotlib.backends.backend_qt4agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 
-from device_list_debug import DevListDialog
+from device_list import DevListDialog
 
 Ui_MainWindow, QMainWindow = loadUiType('spectrometer.ui')
 class Window(QMainWindow, Ui_MainWindow):
