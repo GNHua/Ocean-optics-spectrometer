@@ -22,6 +22,7 @@ $ python spectrometer.py
 ## To do
 
 * Add absorbance calculation
+* Plot multiple spectra
 
 ## Acknowlegements
 
