@@ -34,6 +34,8 @@ class Window(QMainWindow, Ui_MainWindow):
         self.actionOpenDev.triggered.connect(self.openSpectrometer)
         self.actionSpectrum.triggered.connect(self.getSpectrum)
 
+        self.pushButtonSetInt.clicked.connect(self.setIntegrationTime)
+
     def addmpl(self, fig):
          self.canvas = FigureCanvas(fig)
          self.mplvl.addWidget(self.canvas)
