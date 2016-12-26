@@ -1,184 +1,163 @@
-# -*- coding: utf-8 -*-
+import os
+import sys
+import time
+import getpass
+import numpy as np
+import seabreeze.spectrometers as sb
+from PyQt4 import QtGui
+from PyQt4.uic import loadUiType
+import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_qt4agg import (
+    FigureCanvasQTAgg as FigureCanvas,
+    NavigationToolbar2QT as NavigationToolbar)
+    
+from device_list_debug import DevListDialog
 
-# Form implementation generated from reading ui file 'spectrometer.ui'
-#
-# Created by: PyQt4 UI code generator 4.11.4
-#
-# WARNING! All changes made in this file will be lost!
+Ui_MainWindow, QMainWindow = loadUiType('spectrometer.ui')
+class Window(QMainWindow, Ui_MainWindow):
+    def __init__(self, ):
+        super().__init__()
+        self.setupUi(self)
+        self._is_spec_open = False
+        self.path = os.path.join('C:/Users', getpass.getuser())
+        
+        self.connectUi()
+        
+    def connectUi(self):
+        self.actionSave.triggered.connect(self.save)
+        self.actionPlot.triggered.connect(self.plot_file)
+        self.actionQuit.triggered.connect(self.quit)
+        self.actionOpenDev.triggered.connect(self.openSpectrometer)
+        self.actionSpectrum.triggered.connect(self.getSpectrum)
 
-from PyQt4 import QtCore, QtGui
+    def addmpl(self, fig):
+         self.canvas = FigureCanvas(fig)
+         self.mplvl.addWidget(self.canvas)
+         self.canvas.draw()
+         self.toolbar = NavigationToolbar(self.canvas, 
+                 self.mplwindow, coordinates=True)
+         self.mplvl.addWidget(self.toolbar)
+         
+    def rmmpl(self):
+         self.mplvl.removeWidget(self.canvas)
+         self.canvas.close()
+         self.mplvl.removeWidget(self.toolbar)
+         self.toolbar.close()
+         
+    def openSpectrometer(self):
+        if not self._is_spec_open:
+            try:
+                devlist = DevListDialog()
+                if devlist.exec_() == QtGui.QDialog.Accepted and devlist.selected_dev:
+                    self.spec = sb.Spectrometer.from_serial_number(devlist.selected_dev)
+                    self._is_spec_open = True
+                    self.actionOpenDev.setText('&Close Device')
+                    self.actionOpenDev.setToolTip('Close Device')
+            except:
+                QtGui.QMessageBox.critical(self, 'Message',
+                                           "Can't find spectrometer",
+                                           QtGui.QMessageBox.Ok)
+        else:
+            self.spec.close()
+            self._is_spec_open = False
+            self.actionOpenDev.setText('&Open Device')
+            self.actionOpenDev.setToolTip('Open Device')
+        self.actionSpectrum.setEnabled(self._is_spec_open)
+        self.actionOpenDev.setChecked(self._is_spec_open)
 
-try:
-    _fromUtf8 = QtCore.QString.fromUtf8
-except AttributeError:
-    def _fromUtf8(s):
-        return s
+    def setIntegrationTime(self):
+        self.spec.integration_time_micros(self.spinBoxInt.value() * 1000)
+        
+    def getSpectrum(self):
+        self.spectrum = np.transpose(self.spec.spectrum())
+        self.saveBackup()
+        self.plot(self.spectrum)
+        
+    def plot(self, data):
+        if hasattr(self, 'canvas'):
+            self.rmmpl()
+        fig = Figure()
+        ax = fig.add_subplot(111)
+        ax.plot(data[:,0], data[:,1])
+        ax.set_xlabel('Wavelength (nm)')
+        ax.set_ylabel('Intensity')
+        self.addmpl(fig)
+        
+    def saveBackup(self):
+        if not os.path.exists('./backup'):
+            os.makedirs('./backup')
+        self.saveCsv(filename=os.path.join('./backup', time.strftime('%Y%m%d_%H%M%S')))
+        
+    def getSpecSetting(self):
+        date = time.strftime("%D")
+        fiber = '100 um fiber' if self.radioButton100um.isChecked() else '1000 um fiber'
+        slit = 'With slit' if self.checkBoxSlit.isChecked() else 'No slit'
+        intTime = 'Integration time: %d ms' % self.spinBoxInt.value()
+        return [date, fiber, slit, intTime]
+        
+    def save(self):
+        fn = self.getFileName(0)
+        if fn:
+            fn = os.path.splitext(fn)[0]
+            self.saveCsv(fn)
+            self.savePlot(fn)
+            
+    def plot_file(self):
+        fn = self.getFileName(1)
+        if fn:
+            data = np.genfromtxt(fn, delimiter=',')
+            self.plot(data)
+    
+    def saveCsv(self, filename):
+        text = ','.join(self.getSpecSetting())
+        np.savetxt(filename+'.csv', self.spectrum, delimiter=',',
+                   header=text + '\nwavelength,intensity')
+    
+    def savePlot(self, filename):
+        fig, ax = plt.subplots(figsize=(12,6))
+        ax.plot(self.spectrum[:,0], self.spectrum[:,1])
+        ax.set_xlabel('Wavelength (nm)')
+        ax.set_ylabel('Intensity')
+        ax.text(0.05, 0.9, '\n'.join(self.getSpecSetting()), 
+                ha='left', va='top', transform=ax.transAxes)
+        plt.savefig(filename+'.png')
+        plt.close('all')
+        
+    def getFileName(self, mode):
+        '''
+        Get the name and directory
+            mode    0       1
+                    save    open
+        '''
+        title = ['Save data', 'Find']
+        acceptmode = [QtGui.QFileDialog.AcceptSave, QtGui.QFileDialog.AcceptOpen]
+        
+        fd = QtGui.QFileDialog()
+        fd.setWindowTitle(title[mode])
+        fd.setDirectory(self.path)
+        fd.setAcceptMode(acceptmode[mode])
+        fd.setDefaultSuffix("csv")
+        fd.setNameFilter("csv (*.csv)")
 
-try:
-    _encoding = QtGui.QApplication.UnicodeUTF8
-    def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig, _encoding)
-except AttributeError:
-    def _translate(context, text, disambig):
-        return QtGui.QApplication.translate(context, text, disambig)
-
-class Ui_MainWindow(object):
-    def setupUi(self, MainWindow):
-        MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        MainWindow.resize(600, 600)
-        self.centralwidget = QtGui.QWidget(MainWindow)
-        self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
-        self.gridLayout = QtGui.QGridLayout(self.centralwidget)
-        self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
-        self.groupBox = QtGui.QGroupBox(self.centralwidget)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.groupBox.sizePolicy().hasHeightForWidth())
-        self.groupBox.setSizePolicy(sizePolicy)
-        self.groupBox.setObjectName(_fromUtf8("groupBox"))
-        self.horizontalLayout_2 = QtGui.QHBoxLayout(self.groupBox)
-        self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
-        self.spinBoxInt = QtGui.QSpinBox(self.groupBox)
-        self.spinBoxInt.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.spinBoxInt.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        self.spinBoxInt.setMinimum(8)
-        self.spinBoxInt.setMaximum(10000)
-        self.spinBoxInt.setObjectName(_fromUtf8("spinBoxInt"))
-        self.horizontalLayout_2.addWidget(self.spinBoxInt)
-        self.label = QtGui.QLabel(self.groupBox)
-        self.label.setObjectName(_fromUtf8("label"))
-        self.horizontalLayout_2.addWidget(self.label)
-        self.pushButtonSetInt = QtGui.QPushButton(self.groupBox)
-        self.pushButtonSetInt.setObjectName(_fromUtf8("pushButtonSetInt"))
-        self.horizontalLayout_2.addWidget(self.pushButtonSetInt)
-        self.gridLayout.addWidget(self.groupBox, 0, 0, 1, 1)
-        self.groupBox_2 = QtGui.QGroupBox(self.centralwidget)
-        self.groupBox_2.setObjectName(_fromUtf8("groupBox_2"))
-        self.horizontalLayout = QtGui.QHBoxLayout(self.groupBox_2)
-        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
-        self.radioButton100um = QtGui.QRadioButton(self.groupBox_2)
-        self.radioButton100um.setChecked(True)
-        self.radioButton100um.setObjectName(_fromUtf8("radioButton100um"))
-        self.horizontalLayout.addWidget(self.radioButton100um)
-        self.radioButton1000um = QtGui.QRadioButton(self.groupBox_2)
-        self.radioButton1000um.setChecked(False)
-        self.radioButton1000um.setObjectName(_fromUtf8("radioButton1000um"))
-        self.horizontalLayout.addWidget(self.radioButton1000um)
-        self.gridLayout.addWidget(self.groupBox_2, 0, 1, 1, 1)
-        self.checkBoxSlit = QtGui.QCheckBox(self.centralwidget)
-        self.checkBoxSlit.setObjectName(_fromUtf8("checkBoxSlit"))
-        self.gridLayout.addWidget(self.checkBoxSlit, 0, 2, 1, 1)
-        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout.addItem(spacerItem, 0, 3, 1, 1)
-        self.mplwindow = QtGui.QWidget(self.centralwidget)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.mplwindow.sizePolicy().hasHeightForWidth())
-        self.mplwindow.setSizePolicy(sizePolicy)
-        self.mplwindow.setObjectName(_fromUtf8("mplwindow"))
-        self.mplvl = QtGui.QVBoxLayout(self.mplwindow)
-        self.mplvl.setObjectName(_fromUtf8("mplvl"))
-        self.gridLayout.addWidget(self.mplwindow, 1, 0, 1, 4)
-        MainWindow.setCentralWidget(self.centralwidget)
-        self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 600, 22))
-        self.menubar.setNativeMenuBar(False)
-        self.menubar.setObjectName(_fromUtf8("menubar"))
-        self.menu_File = QtGui.QMenu(self.menubar)
-        self.menu_File.setObjectName(_fromUtf8("menu_File"))
-        self.menuDevice = QtGui.QMenu(self.menubar)
-        self.menuDevice.setObjectName(_fromUtf8("menuDevice"))
-        MainWindow.setMenuBar(self.menubar)
-        self.statusbar = QtGui.QStatusBar(MainWindow)
-        self.statusbar.setObjectName(_fromUtf8("statusbar"))
-        MainWindow.setStatusBar(self.statusbar)
-        self.toolBar = QtGui.QToolBar(MainWindow)
-        self.toolBar.setObjectName(_fromUtf8("toolBar"))
-        MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
-        MainWindow.insertToolBarBreak(self.toolBar)
-        self.actionSave = QtGui.QAction(MainWindow)
-        icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/icon/icon/Save as.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.actionSave.setIcon(icon)
-        self.actionSave.setObjectName(_fromUtf8("actionSave"))
-        self.actionQuit = QtGui.QAction(MainWindow)
-        icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(_fromUtf8(":/icon/icon/Self-Destruct Button.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.actionQuit.setIcon(icon1)
-        self.actionQuit.setObjectName(_fromUtf8("actionQuit"))
-        self.actionPlot = QtGui.QAction(MainWindow)
-        icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap(_fromUtf8(":/icon/icon/plot.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.actionPlot.setIcon(icon2)
-        self.actionPlot.setObjectName(_fromUtf8("actionPlot"))
-        self.actionOpenDev = QtGui.QAction(MainWindow)
-        self.actionOpenDev.setCheckable(True)
-        self.actionOpenDev.setChecked(False)
-        icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap(_fromUtf8(":/icon/icon/Connected.png")), QtGui.QIcon.Normal, QtGui.QIcon.On)
-        icon3.addPixmap(QtGui.QPixmap(_fromUtf8(":/icon/icon/Disconnected.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.actionOpenDev.setIcon(icon3)
-        self.actionOpenDev.setObjectName(_fromUtf8("actionOpenDev"))
-        self.actionSpectrum = QtGui.QAction(MainWindow)
-        self.actionSpectrum.setEnabled(False)
-        icon4 = QtGui.QIcon()
-        icon4.addPixmap(QtGui.QPixmap(_fromUtf8(":/icon/icon/Rainbow.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.actionSpectrum.setIcon(icon4)
-        self.actionSpectrum.setObjectName(_fromUtf8("actionSpectrum"))
-        self.menu_File.addAction(self.actionPlot)
-        self.menu_File.addAction(self.actionSave)
-        self.menu_File.addAction(self.actionQuit)
-        self.menuDevice.addAction(self.actionOpenDev)
-        self.menuDevice.addAction(self.actionSpectrum)
-        self.menubar.addAction(self.menu_File.menuAction())
-        self.menubar.addAction(self.menuDevice.menuAction())
-        self.toolBar.addAction(self.actionOpenDev)
-        self.toolBar.addAction(self.actionSpectrum)
-        self.toolBar.addAction(self.actionPlot)
-        self.toolBar.addSeparator()
-        self.toolBar.addAction(self.actionSave)
-        self.toolBar.addAction(self.actionQuit)
-
-        self.retranslateUi(MainWindow)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
-
-    def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow", None))
-        self.groupBox.setTitle(_translate("MainWindow", "Integration Time", None))
-        self.label.setText(_translate("MainWindow", "ms", None))
-        self.pushButtonSetInt.setText(_translate("MainWindow", "Set", None))
-        self.groupBox_2.setTitle(_translate("MainWindow", "Fiber", None))
-        self.radioButton100um.setText(_translate("MainWindow", "100 µm", None))
-        self.radioButton1000um.setText(_translate("MainWindow", "1000 µm", None))
-        self.checkBoxSlit.setText(_translate("MainWindow", "Slit", None))
-        self.menu_File.setTitle(_translate("MainWindow", "&File", None))
-        self.menuDevice.setTitle(_translate("MainWindow", "&Device", None))
-        self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar", None))
-        self.actionSave.setText(_translate("MainWindow", "&Save As...", None))
-        self.actionSave.setShortcut(_translate("MainWindow", "Meta+S", None))
-        self.actionQuit.setText(_translate("MainWindow", "&Quit", None))
-        self.actionQuit.setToolTip(_translate("MainWindow", "Quit Program", None))
-        self.actionQuit.setShortcut(_translate("MainWindow", "Meta+Q", None))
-        self.actionPlot.setText(_translate("MainWindow", "&Plot...", None))
-        self.actionPlot.setToolTip(_translate("MainWindow", "Plot...", None))
-        self.actionPlot.setShortcut(_translate("MainWindow", "Meta+P", None))
-        self.actionOpenDev.setText(_translate("MainWindow", "&Open Device", None))
-        self.actionOpenDev.setToolTip(_translate("MainWindow", "Open Device", None))
-        self.actionOpenDev.setShortcut(_translate("MainWindow", "Meta+O", None))
-        self.actionSpectrum.setText(_translate("MainWindow", "&Spectrum", None))
-        self.actionSpectrum.setToolTip(_translate("MainWindow", "Acquire Spectrum", None))
-        self.actionSpectrum.setShortcut(_translate("MainWindow", "Meta+A", None))
-
-import sp_rc
-
-if __name__ == "__main__":
-    import sys
+        if fd.exec_() == QtGui.QFileDialog.Accepted:
+            filename = str(fd.selectedFiles()[0])
+            self.path = os.path.dirname(filename)
+            return filename
+        else:
+            return
+            
+    def quit(self):
+        if self._is_spec_open:
+            self.spec.close()
+        sys.exit()
+        
+    def closeEven(self, event):
+        self.quit()
+        event.accept()
+            
+if __name__ == '__main__': 
     app = QtGui.QApplication(sys.argv)
-    MainWindow = QtGui.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
+    main = Window()
+    main.show()
     sys.exit(app.exec_())
-
