@@ -54,6 +54,7 @@ class Window(QMainWindow, Ui_MainWindow):
                 devlist = DevListDialog()
                 if devlist.exec_() == QtGui.QDialog.Accepted and devlist.selected_dev:
                     self.spec = sb.Spectrometer.from_serial_number(devlist.selected_dev)
+                    self.initSpectrometer()
                     self._is_spec_open = True
                     self.actionOpenDev.setText('&Close Device')
                     self.actionOpenDev.setToolTip('Close Device')
@@ -63,17 +64,36 @@ class Window(QMainWindow, Ui_MainWindow):
                                            QtGui.QMessageBox.Ok)
         else:
             self.spec.close()
+            self.pushButtonSetInt.setEnabled(False)
+            self.doubleSpinBoxInt.setEnabled(False)
+            self.checkBoxDark.setChecked(False)
+            self.checkBoxDark.setEnabled(False)
+            self.checkBoxNonlinear.setChecked(False)
+            self.checkBoxNonlinear.setEnabled(False)
             self._is_spec_open = False
             self.actionOpenDev.setText('&Open Device')
             self.actionOpenDev.setToolTip('Open Device')
         self.actionSpectrum.setEnabled(self._is_spec_open)
         self.actionOpenDev.setChecked(self._is_spec_open)
 
+    def initSpectrometer(self):
+        self.spec.integration_time_micros(self.spec.minimum_integration_time_micros)
+        self.pushButtonSetInt.setEnabled(True)
+        self.doubleSpinBoxInt.setEnabled(True)
+        self.doubleSpinBoxInt.setValue(self.spec.minimum_integration_time_micros/1000)
+        self.doubleSpinBoxInt.setMinimum(self.spec.minimum_integration_time_micros/1000)
+        self.checkBoxDark.setEnabled(self.spec._has_dark_pixels)
+        self.checkBoxDark.setChecked(self.spec._has_dark_pixels)
+        self.checkBoxNonlinear.setEnabled(self.spec._has_dark_pixels)
+        self.checkBoxNonlinear.setChecked(self.spec._has_dark_pixels)
+
     def setIntegrationTime(self):
-        self.spec.integration_time_micros(self.spinBoxInt.value() * 1000)
+        self.spec.integration_time_micros(int(self.doubleSpinBoxInt.value() * 1000))
 
     def getSpectrum(self):
-        self.spectrum = np.transpose(self.spec.spectrum())
+        self.spectrum = np.transpose(self.spec.spectrum(correct_dark_counts=self.checkBoxDark.isChecked(), \
+                                                        correct_nonlinearity=self.checkBoxNonlinear.isChecked()))
+        # self.spectrum = np.transpose(self.spec.spectrum())
         self.saveBackup()
         self.plot(self.spectrum)
 
@@ -96,7 +116,7 @@ class Window(QMainWindow, Ui_MainWindow):
         date = time.strftime("%D")
         fiber = '100 um fiber' if self.radioButton100um.isChecked() else '1000 um fiber'
         slit = 'With slit' if self.checkBoxSlit.isChecked() else 'No slit'
-        intTime = 'Integration time: %d ms' % self.spinBoxInt.value()
+        intTime = 'Integration time: %.1f ms' % self.doubleSpinBoxInt.value()
         return [date, fiber, slit, intTime]
 
     def save(self):
