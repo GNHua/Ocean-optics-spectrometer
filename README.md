@@ -19,6 +19,10 @@
 $ python spectrometer.py
 ```
 
+## To do
+
+* Add absorbance calculation
+
 ## Acknowlegements
 
 Thanks to [Andreas Poehlmann](https://github.com/ap--) for developing python support for Ocean Optics instruments.
