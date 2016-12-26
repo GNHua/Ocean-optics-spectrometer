@@ -41,8 +41,10 @@ class DevListDialog(QDialog, Ui_Dialog):
         
         serial_item = QtGui.QStandardItem('QEPB0080')
         serial_item.setEditable(False)
+        serial_item.setTextAlignment(QtCore.Qt.AlignCenter)
         model_item = QtGui.QStandardItem('QE65001')
         model_item.setEditable(False)
+        model_item.setTextAlignment(QtCore.Qt.AlignCenter)
         self.model.appendRow([serial_item, model_item])
         
         # for d in sb.list_devices():

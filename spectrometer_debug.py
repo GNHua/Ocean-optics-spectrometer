@@ -73,7 +73,7 @@ class Window(QMainWindow, Ui_MainWindow):
         
     def getSpectrum(self):
         # self.spectrum = np.transpose(self.spec.spectrum())
-        self.spectrum = np.genfromtxt('MartiusYellow_01_int280ms.csv', delimiter=',')
+        self.spectrum = np.genfromtxt('test_data.csv', delimiter=',')
         self.saveBackup()
         self.plot(self.spectrum)
         
