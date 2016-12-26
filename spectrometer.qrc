@@ -1,0 +1,10 @@
+<RCC>
+  <qresource prefix="icon">
+    <file>icon/Disconnected.png</file>
+    <file>icon/Rainbow.png</file>
+    <file>icon/Connected.png</file>
+    <file>icon/plot.png</file>
+    <file>icon/Save as.png</file>
+    <file>icon/Self-Destruct Button.png</file>
+  </qresource>
+</RCC>
