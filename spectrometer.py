@@ -55,24 +55,12 @@ class Window(QMainWindow, Ui_MainWindow):
                 if devlist.exec_() == QtGui.QDialog.Accepted and devlist.selected_dev:
                     self.spec = sb.Spectrometer.from_serial_number(devlist.selected_dev)
                     self.initSpectrometer()
-                    self._is_spec_open = True
-                    self.actionOpenDev.setText('&Close Device')
-                    self.actionOpenDev.setToolTip('Close Device')
             except:
                 QtGui.QMessageBox.critical(self, 'Message',
                                            "Can't find spectrometer",
                                            QtGui.QMessageBox.Ok)
         else:
-            self.spec.close()
-            self.pushButtonSetInt.setEnabled(False)
-            self.doubleSpinBoxInt.setEnabled(False)
-            self.checkBoxDark.setChecked(False)
-            self.checkBoxDark.setEnabled(False)
-            self.checkBoxNonlinear.setChecked(False)
-            self.checkBoxNonlinear.setEnabled(False)
-            self._is_spec_open = False
-            self.actionOpenDev.setText('&Open Device')
-            self.actionOpenDev.setToolTip('Open Device')
+            self.closeSpectrometer()
         self.actionSpectrum.setEnabled(self._is_spec_open)
         self.actionOpenDev.setChecked(self._is_spec_open)
 
@@ -84,8 +72,23 @@ class Window(QMainWindow, Ui_MainWindow):
         self.doubleSpinBoxInt.setMinimum(self.spec.minimum_integration_time_micros/1000)
         self.checkBoxDark.setEnabled(self.spec._has_dark_pixels)
         self.checkBoxDark.setChecked(self.spec._has_dark_pixels)
-        self.checkBoxNonlinear.setEnabled(self.spec._has_dark_pixels)
-        self.checkBoxNonlinear.setChecked(self.spec._has_dark_pixels)
+        self.checkBoxNonlinear.setEnabled(self.spec._has_nonlinearity_coeffs)
+        self.checkBoxNonlinear.setChecked(self.spec._has_nonlinearity_coeffs)
+        self._is_spec_open = True
+        self.actionOpenDev.setText('&Close Device')
+        self.actionOpenDev.setToolTip('Close Device')
+
+    def closeSpectrometer(self):
+        self.spec.close()
+        self.pushButtonSetInt.setEnabled(False)
+        self.doubleSpinBoxInt.setEnabled(False)
+        self.checkBoxDark.setChecked(False)
+        self.checkBoxDark.setEnabled(False)
+        self.checkBoxNonlinear.setChecked(False)
+        self.checkBoxNonlinear.setEnabled(False)
+        self._is_spec_open = False
+        self.actionOpenDev.setText('&Open Device')
+        self.actionOpenDev.setToolTip('Open Device')
 
     def setIntegrationTime(self):
         self.spec.integration_time_micros(int(self.doubleSpinBoxInt.value() * 1000))
