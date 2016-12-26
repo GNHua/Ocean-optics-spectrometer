@@ -128,7 +128,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="nativeMenuBar">
@@ -161,30 +161,30 @@
     <enum>TopToolBarArea</enum>
    </attribute>
    <attribute name="toolBarBreak">
-    <bool>true</bool>
+    <bool>false</bool>
    </attribute>
    <addaction name="actionOpenDev"/>
    <addaction name="actionSpectrum"/>
-   <addaction name="actionPlot"/>
    <addaction name="separator"/>
+   <addaction name="actionPlot"/>
    <addaction name="actionSave"/>
    <addaction name="actionQuit"/>
   </widget>
   <action name="actionSave">
    <property name="icon">
-    <iconset resource="sp.qrc">
+    <iconset resource="spectrometer.qrc">
      <normaloff>:/icon/icon/Save as.png</normaloff>:/icon/icon/Save as.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Save As...</string>
    </property>
    <property name="shortcut">
-    <string>Meta+S</string>
+    <string>Ctrl+S</string>
    </property>
   </action>
   <action name="actionQuit">
    <property name="icon">
-    <iconset resource="sp.qrc">
+    <iconset resource="spectrometer.qrc">
      <normaloff>:/icon/icon/Self-Destruct Button.png</normaloff>:/icon/icon/Self-Destruct Button.png</iconset>
    </property>
    <property name="text">
@@ -194,12 +194,12 @@
     <string>Quit Program</string>
    </property>
    <property name="shortcut">
-    <string>Meta+Q</string>
+    <string>Ctrl+Q</string>
    </property>
   </action>
   <action name="actionPlot">
    <property name="icon">
-    <iconset resource="sp.qrc">
+    <iconset resource="spectrometer.qrc">
      <normaloff>:/icon/icon/plot.png</normaloff>:/icon/icon/plot.png</iconset>
    </property>
    <property name="text">
@@ -209,7 +209,7 @@
     <string>Plot...</string>
    </property>
    <property name="shortcut">
-    <string>Meta+P</string>
+    <string>Ctrl+P</string>
    </property>
   </action>
   <action name="actionOpenDev">
@@ -220,7 +220,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="sp.qrc">
+    <iconset resource="spectrometer.qrc">
      <normaloff>:/icon/icon/Disconnected.png</normaloff>
      <normalon>:/icon/icon/Connected.png</normalon>:/icon/icon/Disconnected.png</iconset>
    </property>
@@ -231,7 +231,7 @@
     <string>Open Device</string>
    </property>
    <property name="shortcut">
-    <string>Meta+O</string>
+    <string>Ctrl+O</string>
    </property>
   </action>
   <action name="actionSpectrum">
@@ -239,7 +239,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="sp.qrc">
+    <iconset resource="spectrometer.qrc">
      <normaloff>:/icon/icon/Rainbow.png</normaloff>:/icon/icon/Rainbow.png</iconset>
    </property>
    <property name="text">
@@ -249,7 +249,7 @@
     <string>Acquire Spectrum</string>
    </property>
    <property name="shortcut">
-    <string>Meta+A</string>
+    <string>Ctrl+A</string>
    </property>
   </action>
  </widget>
