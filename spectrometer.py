@@ -3,10 +3,8 @@ import sys
 import time
 import getpass
 import numpy as np
-import seabreeze.spectrometers as sb
 from PyQt4 import QtGui
 from PyQt4.uic import loadUiType
-
 import matplotlib
 matplotlib.use('Qt4Agg')
 import matplotlib.pyplot as plt
@@ -15,7 +13,13 @@ from matplotlib.backends.backend_qt4agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 
-from device_list import DevListDialog
+debug = True
+if debug:
+    import debug_sb as sb
+    from debug_device_list import DevListDialog
+else:
+    import seabreeze.spectrometers as sb
+    from device_list import DevListDialog
 
 Ui_MainWindow, QMainWindow = loadUiType('spectrometer.ui')
 class Window(QMainWindow, Ui_MainWindow):
@@ -98,7 +102,6 @@ class Window(QMainWindow, Ui_MainWindow):
     def getSpectrum(self):
         self.spectrum = np.transpose(self.spec.spectrum(correct_dark_counts=self.checkBoxDark.isChecked(), \
                                                         correct_nonlinearity=self.checkBoxNonlinear.isChecked()))
-        # self.spectrum = np.transpose(self.spec.spectrum())
         self.saveBackup()
         self.plot(self.spectrum)
 
