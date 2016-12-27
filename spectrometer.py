@@ -122,7 +122,10 @@ class Window(QMainWindow, Ui_MainWindow):
         fiber = '100 um fiber' if self.radioButton100um.isChecked() else '1000 um fiber'
         slit = 'With slit' if self.checkBoxSlit.isChecked() else 'No slit'
         intTime = 'Integration time: %.1f ms' % self.doubleSpinBoxInt.value()
-        return [date, fiber, slit, intTime]
+        darkCor = 'on' if self.checkBoxDark.isChecked() else 'off'
+        nonlinearCor = 'on' if self.checkBoxNonlinear.isChecked() else 'off'
+        return [date, fiber, slit, intTime, \
+                'Dark correction '+darkCor, 'Nonlinearity correction '+nonlinearCor]
 
     def save(self):
         fn = self.getFileName(0)
