@@ -13,7 +13,7 @@ from matplotlib.backends.backend_qt4agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 
-debug = True
+debug = False
 if debug:
     import debug_sb as sb
     from debug_device_list import DevListDialog
@@ -71,6 +71,7 @@ class Window(QMainWindow, Ui_MainWindow):
         self.actionOpenDev.setChecked(self._is_spec_open)
 
     def initSpectrometer(self):
+        self.initTEC()
         self.spec.integration_time_micros(self.spec.minimum_integration_time_micros)
         self.pushButtonSetInt.setEnabled(True)
         self.doubleSpinBoxInt.setEnabled(True)
@@ -83,6 +84,24 @@ class Window(QMainWindow, Ui_MainWindow):
         self._is_spec_open = True
         self.actionOpenDev.setText('&Close Device')
         self.actionOpenDev.setToolTip('Close Device')
+
+    def initTEC(self):
+        # initialize thermoelectric cooling
+        self.spec.tec_get_temperature_C()
+        time.sleep(0.1)
+        self.spec.tec_set_enable(False)
+        time.sleep(0.1)
+        self.spec.tec_set_temperature_C(-15)
+        time.sleep(0.1)
+        self.spec.tec_set_enable(True)
+        time.sleep(0.1)
+        while(self.spec.tec_get_temperature_C() > 10):
+            # make sure the spectrometer is powered by +5V power supply.
+            QtGui.QMessageBox.warning(self, 'Message',
+                                      'Connect Power Supply!\nThen wait for a few seconds.',
+                                      QtGui.QMessageBox.Ok)
+            time.sleep(2)
+            self.initTEC()
 
     def closeSpectrometer(self):
         self.spec.close()

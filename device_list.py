@@ -46,6 +46,10 @@ class DevListDialog(QDialog, Ui_Dialog):
     def openDev(self):
         select = self.tableViewDev.selectionModel()
         if select.hasSelection():
+            # make sure the spectrometer is powered by +5V power supply.
+            QtGui.QMessageBox.warning(self, 'Message',
+                                      'Make sure power supply is connected!',
+                                      QtGui.QMessageBox.Ok)
             # get the serial number of the selected device
             self.selected_dev = self.model.itemData(select.selectedIndexes()[0])[0]
 
