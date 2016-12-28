@@ -13,7 +13,7 @@ from matplotlib.backends.backend_qt4agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 
-debug = False
+debug = True
 if debug:
     import debug_sb as sb
     from debug_device_list import DevListDialog
@@ -56,15 +56,15 @@ class Window(QMainWindow, Ui_MainWindow):
 
     def openSpectrometer(self):
         if not self._is_spec_open:
-            try:
-                devlist = DevListDialog()
-                if devlist.exec_() == QtGui.QDialog.Accepted and devlist.selected_dev:
+            devlist = DevListDialog()
+            if devlist.exec_() == QtGui.QDialog.Accepted and devlist.selected_dev:
+                try:
                     self.spec = sb.Spectrometer.from_serial_number(devlist.selected_dev)
-                    self.initSpectrometer()
-            except:
-                QtGui.QMessageBox.critical(self, 'Message',
-                                           "Can't find spectrometer",
-                                           QtGui.QMessageBox.Ok)
+                except:
+                    QtGui.QMessageBox.critical(self, 'Message',
+                                               "Can't find spectrometer",
+                                               QtGui.QMessageBox.Ok)
+                self.initSpectrometer()
         else:
             self.closeSpectrometer()
         self.actionSpectrum.setEnabled(self._is_spec_open)

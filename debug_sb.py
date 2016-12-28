@@ -26,6 +26,7 @@ class Spectrometer:
 
     def tec_get_temperature_C(self):
         print('Detector temperature %.1f C' % self._temp)
+        return self._temp
 
     def tec_set_temperature_C(self, t):
         self._temp = t
