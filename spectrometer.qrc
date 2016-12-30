@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="icon">
+    <file>icon/absorb.png</file>
     <file>icon/Disconnected.png</file>
     <file>icon/Rainbow.png</file>
     <file>icon/Connected.png</file>

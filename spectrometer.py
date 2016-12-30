@@ -37,6 +37,7 @@ class Window(QMainWindow, Ui_MainWindow):
         self.actionQuit.triggered.connect(self.quit)
         self.actionOpenDev.triggered.connect(self.openSpectrometer)
         self.actionSpectrum.triggered.connect(self.getSpectrum)
+        self.actionAbsorbance.triggered.connect(self.calcAbsorbance)
 
         self.pushButtonSetInt.clicked.connect(self.setIntegrationTime)
 
@@ -122,16 +123,22 @@ class Window(QMainWindow, Ui_MainWindow):
         self.spectrum = np.transpose(self.spec.spectrum(correct_dark_counts=self.checkBoxDark.isChecked(), \
                                                         correct_nonlinearity=self.checkBoxNonlinear.isChecked()))
         self.saveBackup()
-        self.plot(self.spectrum)
+        self.plot(self.spectrum, mode='spectrum')
 
-    def plot(self, data):
+    def plot(self, data, mode='spectrum'):
+        '''
+        Get the name and directory
+            mode: 'spectrum', 'absorbance'
+        '''
+        ylabel = {'spectrum': 'Intensity', 'absorbance': 'Absorbance'}
         if hasattr(self, 'canvas'):
             self.rmmpl()
         fig = Figure()
         ax = fig.add_subplot(111)
         ax.plot(data[:,0], data[:,1])
         ax.set_xlabel('Wavelength (nm)')
-        ax.set_ylabel('Intensity')
+        ax.set_ylabel(ylabel[mode])
+        ax.set_ylim(0,)
         self.addmpl(fig)
 
     def saveBackup(self):
@@ -160,7 +167,7 @@ class Window(QMainWindow, Ui_MainWindow):
         fn = self.getFileName(1)
         if fn:
             data = np.genfromtxt(fn, delimiter=',')
-            self.plot(data)
+            self.plot(data, mode='spectrum')
 
     def saveCsv(self, filename):
         text = ','.join(self.getSpecSetting())
@@ -176,6 +183,23 @@ class Window(QMainWindow, Ui_MainWindow):
                 ha='left', va='top', transform=ax.transAxes)
         plt.savefig(filename+'.png')
         plt.close('all')
+        
+    def calcAbsorbance(self):
+        '''
+        Select baseline data file and calculate absorbance
+        '''
+        fn = self.getFileName(1)
+        if fn:
+            begin_index = 50
+            end_index = 998
+            noresin = np.genfromtxt(fn, delimiter=',')
+            numerator = self.spectrum[begin_index:end_index,1]
+            denominator = noresin[begin_index:end_index,1]
+            absorbance = -np.log10(numerator/denominator)
+            print(absorbance.shape)
+            data = np.array([self.spectrum[begin_index:end_index,0], absorbance]).T
+            print(data.shape)
+            self.plot(data, mode='absorbance')
 
     def getFileName(self, mode):
         '''

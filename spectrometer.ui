@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>655</width>
+    <width>791</width>
     <height>600</height>
    </rect>
   </property>
@@ -162,8 +162,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>655</width>
-     <height>21</height>
+     <width>791</width>
+     <height>22</height>
     </rect>
    </property>
    <property name="nativeMenuBar">
@@ -173,6 +173,7 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
+    <addaction name="actionAbsorbance"/>
     <addaction name="actionPlot"/>
     <addaction name="actionSave"/>
     <addaction name="actionQuit"/>
@@ -201,6 +202,7 @@
    <addaction name="actionOpenDev"/>
    <addaction name="actionSpectrum"/>
    <addaction name="separator"/>
+   <addaction name="actionAbsorbance"/>
    <addaction name="actionPlot"/>
    <addaction name="actionSave"/>
    <addaction name="actionQuit"/>
@@ -285,6 +287,21 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+A</string>
+   </property>
+  </action>
+  <action name="actionAbsorbance">
+   <property name="icon">
+    <iconset resource="spectrometer.qrc">
+     <normaloff>:/icon/icon/absorb.png</normaloff>:/icon/icon/absorb.png</iconset>
+   </property>
+   <property name="text">
+    <string>Absorbance</string>
+   </property>
+   <property name="toolTip">
+    <string>Calculate Absorbance</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+B</string>
    </property>
   </action>
  </widget>
