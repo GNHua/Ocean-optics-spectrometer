@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>791</width>
+    <width>696</width>
     <height>600</height>
    </rect>
   </property>
@@ -114,7 +114,8 @@
           <bool>false</bool>
          </property>
          <property name="text">
-          <string>Dark Correction</string>
+          <string>Dark
+Correction</string>
          </property>
         </widget>
        </item>
@@ -124,7 +125,8 @@
           <bool>false</bool>
          </property>
          <property name="text">
-          <string>Nonlinearity Correction</string>
+          <string>Nonlinearity
+Correction</string>
          </property>
         </widget>
        </item>
@@ -162,7 +164,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>791</width>
+     <width>696</width>
      <height>22</height>
     </rect>
    </property>
@@ -184,6 +186,7 @@
     </property>
     <addaction name="actionOpenDev"/>
     <addaction name="actionSpectrum"/>
+    <addaction name="actionMultiRun"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menuDevice"/>
@@ -201,6 +204,7 @@
    </attribute>
    <addaction name="actionOpenDev"/>
    <addaction name="actionSpectrum"/>
+   <addaction name="actionMultiRun"/>
    <addaction name="separator"/>
    <addaction name="actionAbsorbance"/>
    <addaction name="actionPlot"/>
@@ -302,6 +306,24 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+B</string>
+   </property>
+  </action>
+  <action name="actionMultiRun">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="spectrometer.qrc">
+     <normaloff>:/icon/icon/Ice Cream Cone.png</normaloff>:/icon/icon/Ice Cream Cone.png</iconset>
+   </property>
+   <property name="text">
+    <string>Multiple Run</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+M</string>
    </property>
   </action>
  </widget>

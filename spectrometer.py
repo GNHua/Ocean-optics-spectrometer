@@ -38,6 +38,7 @@ class Window(QMainWindow, Ui_MainWindow):
         self.actionOpenDev.triggered.connect(self.openSpectrometer)
         self.actionSpectrum.triggered.connect(self.getSpectrum)
         self.actionAbsorbance.triggered.connect(self.calcAbsorbance)
+        self.actionMultiRun.triggered.connect(self.multiRun)
 
         self.pushButtonSetInt.clicked.connect(self.setIntegrationTime)
 
@@ -70,6 +71,7 @@ class Window(QMainWindow, Ui_MainWindow):
             self.closeSpectrometer()
         self.actionSpectrum.setEnabled(self._is_spec_open)
         self.actionOpenDev.setChecked(self._is_spec_open)
+        self.actionMultiRun.setEnabled(self._is_spec_open)
 
     def initSpectrometer(self):
         self.initTEC()
@@ -223,6 +225,16 @@ class Window(QMainWindow, Ui_MainWindow):
             return filename
         else:
             return
+            
+    def multiRun(self):
+        dialog = RunListDialog()
+        if dialog.exec_() == QtGui.QDialog.Accepted and dialog.list:
+            self.runlist = 
+            except:
+                QtGui.QMessageBox.critical(self, 'Message',
+                                           "Can't find spectrometer",
+                                           QtGui.QMessageBox.Ok)
+            self.initSpectrometer()
 
     def quit(self):
         if self._is_spec_open:
