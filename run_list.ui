@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>400</height>
+    <width>350</width>
+    <height>300</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,6 +18,9 @@
     <widget class="QTableView" name="tableViewRun">
      <property name="dragEnabled">
       <bool>false</bool>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::ExtendedSelection</enum>
      </property>
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectItems</enum>
@@ -41,6 +44,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="pushButtonInsert">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Insert</string>
        </property>
@@ -48,6 +54,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="pushButtonRemove">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Remove</string>
        </property>

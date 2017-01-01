@@ -17,6 +17,7 @@ debug = True
 if debug:
     import debug_sb as sb
     from debug_device_list import DevListDialog
+    from debug_run_list import RunListDialog
 else:
     import seabreeze.spectrometers as sb
     from device_list import DevListDialog
@@ -27,6 +28,7 @@ class Window(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
         self._is_spec_open = False
+        self._runs = []
         self.path = os.path.join('C:/Users', getpass.getuser())
 
         self.connectUi()
@@ -122,6 +124,8 @@ class Window(QMainWindow, Ui_MainWindow):
         self.spec.integration_time_micros(int(self.doubleSpinBoxInt.value() * 1000))
 
     def getSpectrum(self):
+        # if self.actionMultiRun.isChecked():
+            
         self.spectrum = np.transpose(self.spec.spectrum(correct_dark_counts=self.checkBoxDark.isChecked(), \
                                                         correct_nonlinearity=self.checkBoxNonlinear.isChecked()))
         self.saveBackup()
@@ -227,14 +231,16 @@ class Window(QMainWindow, Ui_MainWindow):
             return
             
     def multiRun(self):
-        dialog = RunListDialog()
-        if dialog.exec_() == QtGui.QDialog.Accepted and dialog.list:
-            self.runlist = 
-            except:
-                QtGui.QMessageBox.critical(self, 'Message',
-                                           "Can't find spectrometer",
-                                           QtGui.QMessageBox.Ok)
-            self.initSpectrometer()
+        if len(self._runs) == 0:
+            dialog = RunListDialog()
+            if dialog.exec_() == QtGui.QDialog.Accepted and len(dialog.model._runs) > 0:
+                self._runs = dialog.model._runs
+            else:
+                self.actionMultiRun.setChecked(False)
+        else:
+            del self._runs[:]
+            self.actionMultiRun.setChecked(False)
+            
 
     def quit(self):
         if self._is_spec_open:

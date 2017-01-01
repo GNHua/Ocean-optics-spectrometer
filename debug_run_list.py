@@ -1,71 +1,122 @@
 import sys
-from PyQt4 import QtCore, QtGui
-from PyQt4.uic import loadUiType
+from PyQt4 import QtCore, QtGui, uic
 
-Ui_Dialog, QDialog = loadUiType('run_list.ui')
-class DevListDialog(QDialog, Ui_Dialog):
+class RunTableModel(QtCore.QAbstractTableModel):
+    def __init__(self):
+        super().__init__()
+        self._headers = ['Integration (ms)', 'Interval (s)', 'Repeat']
+        self._runs = []
+        
+    def flags(self, index):
+        return QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+        
+    def rowCount(self, parent): return len(self._runs)
+    def columnCount(self, parent): return 3
+    
+    def data(self, index, role):
+        if not index.isValid(): return None
+        if role == QtCore.Qt.DisplayRole:
+            return self._runs[index.row()][index.column()]
+        elif role == QtCore.Qt.TextAlignmentRole:
+            return QtCore.Qt.AlignCenter
+        else:
+            return None
+    
+    def setData(self, index, value, role=QtCore.Qt.EditRole):
+        self._runs[index.row()][index.column()] = value
+        self.dataChanged.emit(index, index)
+        return True
+    
+    def headerData(self, section, orientation, role):
+        if role == QtCore.Qt.DisplayRole:
+            if orientation == QtCore.Qt.Horizontal:
+                if section < 3:
+                    return self._headers[section]
+                else:
+                    return 'N/A'
+            else:
+                return str(section+1)
+
+class SpinBoxDelegate(QtGui.QItemDelegate):
+    def __init__(self):
+        super().__init__()
+        
+    def setEditorData(self, editor, index):
+        editor.setValue(index.model()._runs[index.row()][index.column()])
+        
+    def setModelData(self, editor, model, index):
+        model.setData(index, editor.value())
+        
+    def currentValueChanged(self):
+        self.commitData.emit(self.sender())
+        
+class IntegrationDelegate(SpinBoxDelegate):
+    def __init__(self): super().__init__()
+    def createEditor(self, parent, option, index):
+        spinbox = QtGui.QDoubleSpinBox(parent)
+        spinbox.setRange(8, 10000)
+        spinbox.setDecimals(1)
+        spinbox.valueChanged.connect(self.currentValueChanged)
+        return spinbox
+        
+class IntervalDelegate(SpinBoxDelegate):
+    def __init__(self): super().__init__()
+    def createEditor(self, parent, option, index):
+        spinbox = QtGui.QDoubleSpinBox(parent)
+        spinbox.valueChanged.connect(self.currentValueChanged)
+        return spinbox
+        
+class RepeatDelegate(SpinBoxDelegate):
+    def __init__(self): super().__init__()
+    def createEditor(self, parent, option, index):
+        spinbox = QtGui.QSpinBox(parent)
+        spinbox.valueChanged.connect(self.currentValueChanged)
+        return spinbox
+
+Ui_Dialog, QDialog = uic.loadUiType('run_list.ui')
+class RunListDialog(QDialog, Ui_Dialog):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
 
-        self.model = QtGui.QStandardItemModel()
-        self.initModel()
-
+        self.model = RunTableModel()
+        self.tableViewRun.setModel(self.model)
+        
+        self._delegates = [IntegrationDelegate(), IntervalDelegate(), RepeatDelegate()]
+        self.tableViewRun.setItemDelegateForColumn(0, self._delegates[0])
+        self.tableViewRun.setItemDelegateForColumn(1, self._delegates[1])
+        self.tableViewRun.setItemDelegateForColumn(2, self._delegates[2])
+        self.tableViewRun.selectionModel().selectionChanged.connect(self.enableInsert)
+        
         self.pushButtonAdd.clicked.connect(self.add)
         self.pushButtonInsert.clicked.connect(self.insert)
         self.pushButtonRemove.clicked.connect(self.remove)
-
-        self.buttonBox.accepted.connect(self.openDev)
-        self.selected_dev = None
-
-    def initModel(self):
-        self.model.setColumnCount(3)
-        self.model.setHorizontalHeaderLabels(['Integration (ms)', 'Interval (s)', 'Repeat'])
-        self.tableViewRun.setModel(self.model)
+        
+    def enableInsert(self):
+        enabled = False if len(self.tableViewRun.selectedIndexes()) == 0 else True
+        self.pushButtonInsert.setEnabled(enabled)
+        self.pushButtonRemove.setEnabled(enabled)
         
     def add(self):
-        integration_item = QtGui.QStandardItem()
-        integration_item.setData(8)
-        interval_item = QtGui.QStandardItem()
-        repeat_item = QtGui.QStandardItem()
-        self.model.appendRow([integration_item, interval_item, repeat_item])
-        
-        # print(self.model.item(0,0).data())
-        # print(self.model.item(0,1).data())
-        # print(self.model.item(0,2).data())
-        
+        self.insertAt(len(self.model._runs))
+    
     def insert(self):
-        pass
+        row = self.tableViewRun.selectedIndexes()[0].row()
+        self.insertAt(row)
+        
+    def insertAt(self, row):
+        self.model._runs.insert(row, [8,1,1])
+        self.model.insertRow(row)
+        self.model.layoutChanged.emit()
         
     def remove(self):
-        pass
-
-    # def refresh(self):
-    #     self.model.clear()
-    #     self.initModel()
-
-        # for d in sb.list_devices():
-        #     serial_item = QtGui.QStandardItem(d.serial)
-        #     serial_item.setEditable(False)
-        #     serial_item.setTextAlignment(QtCore.Qt.AlignCenter)
-        #     model_item = QtGui.QStandardItem(d.model)
-        #     model_item.setEditable(False)
-        #     model_item.setTextAlignment(QtCore.Qt.AlignCenter)
-        #     self.model.appendRow([serial_item, model_item])
-
-    def openDev(self):
-        pass
-        # select = self.tableViewDev.selectionModel()
-        # if select.hasSelection():
-        #     # make sure the spectrometer is powered by +5V power supply.
-        #     QtGui.QMessageBox.warning(self, 'Message',
-        #                               'Make sure power supply is connected!',
-        #                               QtGui.QMessageBox.Ok)
-        #     # print(self.model.itemData(select.selectedIndexes()[0])[0])
-        #     self.selected_dev = self.model.itemData(select.selectedIndexes()[0])[0]
+        row = self.tableViewRun.selectedIndexes()[0].row()
+        del self.model._runs[row]
+        self.model.removeRow(row)
+        self.model.layoutChanged.emit()
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
-    main = DevListDialog()
+    main = RunListDialog()
     main.show()
     sys.exit(app.exec_())
