@@ -29,6 +29,8 @@ class Window(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self._is_spec_open = False
         self._runs = []
+        self._multirundir = ''
+        self._multirunfn = ''
         self.path = os.path.join('C:/Users', getpass.getuser())
 
         self.connectUi()
@@ -48,8 +50,7 @@ class Window(QMainWindow, Ui_MainWindow):
          self.canvas = FigureCanvas(fig)
          self.mplvl.addWidget(self.canvas)
          self.canvas.draw()
-         self.toolbar = NavigationToolbar(self.canvas,
-                 self.mplwindow, coordinates=True)
+         self.toolbar = NavigationToolbar(self.canvas, self.mplwindow, coordinates=True)
          self.mplvl.addWidget(self.toolbar)
 
     def rmmpl(self):
@@ -124,12 +125,25 @@ class Window(QMainWindow, Ui_MainWindow):
         self.spec.integration_time_micros(int(self.doubleSpinBoxInt.value() * 1000))
 
     def getSpectrum(self):
-        # if self.actionMultiRun.isChecked():
-            
-        self.spectrum = np.transpose(self.spec.spectrum(correct_dark_counts=self.checkBoxDark.isChecked(), \
+        if self.actionMultiRun.isChecked():
+            for i, run in enumerate(self._runs):
+                integration_time_ms, interval_s, repeat = run
+                self.spec.integration_time_micros(int(integration_time_ms * 1000))
+                self.doubleSpinBoxInt.setValue(integration_time_ms)
+                for j in range(repeat):
+                    s = np.transpose(self.spec.spectrum(correct_dark_counts=self.checkBoxDark.isChecked(), \
                                                         correct_nonlinearity=self.checkBoxNonlinear.isChecked()))
-        self.saveBackup()
-        self.plot(self.spectrum, mode='spectrum')
+                    fn = os.path.join(self._multirundir, self._multirunfn+'_{0:.0f}ms_{1:d}_{2:02d}'.format(integration_time_ms, i, repeat))
+                    self.saveCsv(fn, data=s)
+                    self.plot(s)
+                    time.sleep(interval_s)
+        else:
+            self.spectrum = np.transpose(self.spec.spectrum(correct_dark_counts=self.checkBoxDark.isChecked(), \
+                                                            correct_nonlinearity=self.checkBoxNonlinear.isChecked()))
+            self.saveBackup()
+            for i in range(2):
+                self.plot(self.spectrum, mode='spectrum')
+                time.sleep(1)
 
     def plot(self, data, mode='spectrum'):
         '''
@@ -175,9 +189,11 @@ class Window(QMainWindow, Ui_MainWindow):
             data = np.genfromtxt(fn, delimiter=',')
             self.plot(data, mode='spectrum')
 
-    def saveCsv(self, filename):
+    def saveCsv(self, filename, data=None):
+        if data is None:
+            data = self.spectrum
         text = ','.join(self.getSpecSetting())
-        np.savetxt(filename+'.csv', self.spectrum, delimiter=',',
+        np.savetxt(filename+'.csv', data, delimiter=',',
                    header=text + '\nwavelength,intensity')
 
     def savePlot(self, filename):
@@ -231,16 +247,17 @@ class Window(QMainWindow, Ui_MainWindow):
             return
             
     def multiRun(self):
-        if len(self._runs) == 0:
-            dialog = RunListDialog()
-            if dialog.exec_() == QtGui.QDialog.Accepted and len(dialog.model._runs) > 0:
-                self._runs = dialog.model._runs
-            else:
-                self.actionMultiRun.setChecked(False)
-        else:
-            del self._runs[:]
-            self.actionMultiRun.setChecked(False)
-            
+        dialog = RunListDialog(runs=list(self._runs))
+        dialog.lineEditDir.setText(self._multirundir)
+        dialog.lineEditFn.setText(self._multirunfn)
+        if dialog.exec_() == QtGui.QDialog.Accepted:
+            self._runs = list(dialog.model._runs)
+            self._multirundir = dialog.lineEditDir.text()
+            self._multirunfn = os.path.splitext(dialog.lineEditFn.text())[0]
+        hasmultirun = len(self._runs) > 0
+        self.actionMultiRun.setChecked(hasmultirun)
+        self.pushButtonSetInt.setEnabled(not hasmultirun)
+        self.doubleSpinBoxInt.setEnabled(not hasmultirun)
 
     def quit(self):
         if self._is_spec_open:

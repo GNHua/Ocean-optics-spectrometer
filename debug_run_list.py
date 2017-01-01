@@ -2,10 +2,10 @@ import sys
 from PyQt4 import QtCore, QtGui, uic
 
 class RunTableModel(QtCore.QAbstractTableModel):
-    def __init__(self):
+    def __init__(self, runs=[]):
         super().__init__()
         self._headers = ['Integration (ms)', 'Interval (s)', 'Repeat']
-        self._runs = []
+        self._runs = runs
         
     def flags(self, index):
         return QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
@@ -75,11 +75,11 @@ class RepeatDelegate(SpinBoxDelegate):
 
 Ui_Dialog, QDialog = uic.loadUiType('run_list.ui')
 class RunListDialog(QDialog, Ui_Dialog):
-    def __init__(self):
+    def __init__(self, runs=[]):
         super().__init__()
         self.setupUi(self)
 
-        self.model = RunTableModel()
+        self.model = RunTableModel(runs=runs)
         self.tableViewRun.setModel(self.model)
         
         self._delegates = [IntegrationDelegate(), IntervalDelegate(), RepeatDelegate()]
@@ -91,6 +91,9 @@ class RunListDialog(QDialog, Ui_Dialog):
         self.pushButtonAdd.clicked.connect(self.add)
         self.pushButtonInsert.clicked.connect(self.insert)
         self.pushButtonRemove.clicked.connect(self.remove)
+        self.pushButtonRemoveAll.clicked.connect(self.removeAll)
+        
+        self.toolButtonDir.clicked.connect(self.setDir)
         
     def enableInsert(self):
         enabled = False if len(self.tableViewRun.selectedIndexes()) == 0 else True
@@ -106,14 +109,21 @@ class RunListDialog(QDialog, Ui_Dialog):
         
     def insertAt(self, row):
         self.model._runs.insert(row, [8,1,1])
-        self.model.insertRow(row)
         self.model.layoutChanged.emit()
         
     def remove(self):
         row = self.tableViewRun.selectedIndexes()[0].row()
         del self.model._runs[row]
-        self.model.removeRow(row)
         self.model.layoutChanged.emit()
+        
+    def removeAll(self):
+        del self.model._runs[:]
+        self.model.layoutChanged.emit()
+        
+    def setDir(self):
+        dir = QtGui.QFileDialog.getExistingDirectory(None, 'Select a folder:', '/', \
+                                                     QtGui.QFileDialog.ShowDirsOnly)
+        self.lineEditDir.setText(dir)
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)

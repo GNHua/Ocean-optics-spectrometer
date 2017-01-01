@@ -6,15 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>350</width>
-    <height>300</height>
+    <width>450</width>
+    <height>400</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Run List</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
+  <layout class="QGridLayout" name="gridLayout_2">
+   <item row="0" column="0" rowspan="2">
     <widget class="QTableView" name="tableViewRun">
      <property name="dragEnabled">
       <bool>false</bool>
@@ -33,10 +33,16 @@
      </attribute>
     </widget>
    </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+   <item row="0" column="1">
+    <layout class="QVBoxLayout" name="verticalLayout">
      <item>
       <widget class="QPushButton" name="pushButtonAdd">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="text">
         <string>Add</string>
        </property>
@@ -46,6 +52,12 @@
       <widget class="QPushButton" name="pushButtonInsert">
        <property name="enabled">
         <bool>false</bool>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
        </property>
        <property name="text">
         <string>Insert</string>
@@ -57,14 +69,98 @@
        <property name="enabled">
         <bool>false</bool>
        </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="text">
         <string>Remove</string>
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QPushButton" name="pushButtonRemoveAll">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Remove All</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
-   <item>
+   <item row="1" column="1">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>100</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="2" column="0" colspan="2">
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Save</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
+        <property name="toolTip">
+         <string/>
+        </property>
+        <property name="text">
+         <string>Directory:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="lineEditDir"/>
+      </item>
+      <item row="0" column="2">
+       <widget class="QToolButton" name="toolButtonDir">
+        <property name="text">
+         <string>...</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>File name:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1" colspan="2">
+       <widget class="QLineEdit" name="lineEditFn"/>
+      </item>
+     </layout>
+     <zorder>toolButtonDir</zorder>
+     <zorder>label</zorder>
+     <zorder>lineEditDir</zorder>
+     <zorder>label_2</zorder>
+     <zorder>lineEditFn</zorder>
+     <zorder>label_2</zorder>
+     <zorder>label</zorder>
+     <zorder>lineEditFn</zorder>
+     <zorder>lineEditDir</zorder>
+     <zorder>toolButtonDir</zorder>
+    </widget>
+   </item>
+   <item row="3" column="0" colspan="2">
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
