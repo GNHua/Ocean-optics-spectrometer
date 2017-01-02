@@ -7,13 +7,13 @@ class DevTableModel(QtCore.QAbstractTableModel):
         super().__init__()
         self._headers = ['Serial Number', 'Model']
         self._dev = dev
-        
+
     def flags(self, index):
         return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
-        
+
     def rowCount(self, parent): return len(self._dev)
     def columnCount(self, parent): return 2
-    
+
     def data(self, index, role):
         if not index.isValid(): return None
         if role == QtCore.Qt.DisplayRole:
@@ -22,7 +22,7 @@ class DevTableModel(QtCore.QAbstractTableModel):
             return QtCore.Qt.AlignCenter
         else:
             return None
-            
+
     def headerData(self, section, orientation, role):
         if role == QtCore.Qt.DisplayRole:
             if orientation == QtCore.Qt.Horizontal:
@@ -30,7 +30,7 @@ class DevTableModel(QtCore.QAbstractTableModel):
             else:
                 return section+1
 
-Ui_Dialog, QDialog = loadUiType('device_table_dialog.ui')
+Ui_Dialog, QDialog = uic.loadUiType('device_table_dialog.ui')
 class DevTableDialog(QDialog, Ui_Dialog):
     '''
     A dialog window to select device.
@@ -51,8 +51,10 @@ class DevTableDialog(QDialog, Ui_Dialog):
     def refresh(self):
         del self.model._dev[:]
 
-        for d in sb.list_devices():
+        for d in list_devices():
             self.model._dev.append([d.serial, d.model])
+
+        self.model.layoutChanged.emit()
 
     def openDev(self):
         selected = self.tableViewDev.selectedIndexes()

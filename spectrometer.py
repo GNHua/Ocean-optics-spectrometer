@@ -12,13 +12,13 @@ from matplotlib.backends.backend_qt4agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 
-debug = True
+debug = False
 if debug:
     import debug_sb as sb
     from debug_device_table_dialog import DevTableDialog
 else:
     import seabreeze.spectrometers as sb
-    from device_list import DevTableDialog
+    from device_table_dialog import DevTableDialog
 from run_table_dialog import RunTableDialog
 
 Ui_MainWindow, QMainWindow = uic.loadUiType('spectrometer.ui')
@@ -30,7 +30,7 @@ class Window(QMainWindow, Ui_MainWindow):
         self._runs = []
         self._multirundir = ''
         self._multirunfn = ''
-        self.path = os.path.join('C:/Users', getpass.getuser())
+        self.path = os.path.join('/')
 
         self.connectUi()
 
@@ -44,7 +44,7 @@ class Window(QMainWindow, Ui_MainWindow):
         self.actionMultiRun.triggered.connect(self.multiRun)
 
         self.pushButtonSetInt.clicked.connect(self.setIntegrationTime)
-        
+
     def addmpl(self, fig):
          self.canvas = FigureCanvas(fig)
          self.mplvl.addWidget(self.canvas)
@@ -203,7 +203,7 @@ class Window(QMainWindow, Ui_MainWindow):
                 ha='left', va='top', transform=ax.transAxes)
         plt.savefig(filename+'.png')
         plt.close('all')
-        
+
     def calcAbsorbance(self):
         '''
         Select baseline data file and calculate absorbance
@@ -243,7 +243,7 @@ class Window(QMainWindow, Ui_MainWindow):
             return filename
         else:
             return
-            
+
     def multiRun(self):
         dialog = RunTableDialog(runs=list(self._runs))
         dialog.lineEditDir.setText(self._multirundir)
