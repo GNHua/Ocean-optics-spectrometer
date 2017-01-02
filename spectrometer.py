@@ -134,12 +134,13 @@ class Window(QMainWindow, Ui_MainWindow):
                                                         correct_nonlinearity=self.checkBoxNonlinear.isChecked()))
                     fn = os.path.join(self._multirundir, self._multirunfn+'_{0:.0f}ms_{1:d}_{2:02d}'.format(integration_time_ms, i, repeat))
                     self.saveCsv(fn, data=s)
+                    self.saveBackup(data=s)
                     time.sleep(interval_s)
             self.plot(s)
         else:
             self.spectrum = np.transpose(self.spec.spectrum(correct_dark_counts=self.checkBoxDark.isChecked(), \
                                                             correct_nonlinearity=self.checkBoxNonlinear.isChecked()))
-            self.saveBackup()
+            self.saveBackup(self.spectrum)
             self.plot(self.spectrum, mode='spectrum')
 
     def plot(self, data, mode='spectrum'):
@@ -158,10 +159,10 @@ class Window(QMainWindow, Ui_MainWindow):
         ax.set_ylim(0,)
         self.addmpl(fig)
 
-    def saveBackup(self):
+    def saveBackup(self, data):
         if not os.path.exists('./backup'):
             os.makedirs('./backup')
-        self.saveCsv(filename=os.path.join('./backup', time.strftime('%Y%m%d_%H%M%S')))
+        self.saveCsv(filename=os.path.join('./backup', time.strftime('%Y%m%d_%H%M%S')), data=data)
 
     def getSpecSetting(self):
         date = time.strftime("%D")
@@ -251,10 +252,10 @@ class Window(QMainWindow, Ui_MainWindow):
             self._runs = list(dialog.model._runs)
             self._multirundir = dialog.lineEditDir.text()
             self._multirunfn = os.path.splitext(dialog.lineEditFn.text())[0]
-        hasmultirun = len(self._runs) > 0
-        self.actionMultiRun.setChecked(hasmultirun)
-        self.pushButtonSetInt.setEnabled(not hasmultirun)
-        self.doubleSpinBoxInt.setEnabled(not hasmultirun)
+        multirunready = (len(self._runs) > 0) and bool(self._multirundir) and bool(self._multirunfn)
+        self.actionMultiRun.setChecked(multirunready)
+        self.pushButtonSetInt.setEnabled(not multirunready)
+        self.doubleSpinBoxInt.setEnabled(not multirunready)
 
     def quit(self):
         if self._is_spec_open:
