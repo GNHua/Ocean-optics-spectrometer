@@ -30,12 +30,9 @@ class RunTableModel(QtCore.QAbstractTableModel):
     def headerData(self, section, orientation, role):
         if role == QtCore.Qt.DisplayRole:
             if orientation == QtCore.Qt.Horizontal:
-                if section < 3:
-                    return self._headers[section]
-                else:
-                    return 'N/A'
+                return self._headers[section]
             else:
-                return str(section+1)
+                return section+1
 
 class SpinBoxDelegate(QtGui.QItemDelegate):
     def __init__(self):
@@ -73,8 +70,8 @@ class RepeatDelegate(SpinBoxDelegate):
         spinbox.valueChanged.connect(self.currentValueChanged)
         return spinbox
 
-Ui_Dialog, QDialog = uic.loadUiType('run_list.ui')
-class RunListDialog(QDialog, Ui_Dialog):
+Ui_Dialog, QDialog = uic.loadUiType('run_table_dialog.ui')
+class RunTableDialog(QDialog, Ui_Dialog):
     def __init__(self, runs=[]):
         super().__init__()
         self.setupUi(self)
@@ -127,6 +124,6 @@ class RunListDialog(QDialog, Ui_Dialog):
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
-    main = RunListDialog()
+    main = RunTableDialog()
     main.show()
     sys.exit(app.exec_())

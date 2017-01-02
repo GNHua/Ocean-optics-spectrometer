@@ -3,8 +3,7 @@ import sys
 import time
 import getpass
 import numpy as np
-from PyQt4 import QtGui
-from PyQt4.uic import loadUiType
+from PyQt4 import QtGui, QtCore, uic
 import matplotlib
 matplotlib.use('Qt4Agg')
 import matplotlib.pyplot as plt
@@ -16,13 +15,13 @@ from matplotlib.backends.backend_qt4agg import (
 debug = True
 if debug:
     import debug_sb as sb
-    from debug_device_list import DevListDialog
-    from debug_run_list import RunListDialog
+    from debug_device_table_dialog import DevTableDialog
 else:
     import seabreeze.spectrometers as sb
-    from device_list import DevListDialog
+    from device_list import DevTableDialog
+from run_table_dialog import RunTableDialog
 
-Ui_MainWindow, QMainWindow = loadUiType('spectrometer.ui')
+Ui_MainWindow, QMainWindow = uic.loadUiType('spectrometer.ui')
 class Window(QMainWindow, Ui_MainWindow):
     def __init__(self, ):
         super().__init__()
@@ -45,7 +44,7 @@ class Window(QMainWindow, Ui_MainWindow):
         self.actionMultiRun.triggered.connect(self.multiRun)
 
         self.pushButtonSetInt.clicked.connect(self.setIntegrationTime)
-
+        
     def addmpl(self, fig):
          self.canvas = FigureCanvas(fig)
          self.mplvl.addWidget(self.canvas)
@@ -61,10 +60,10 @@ class Window(QMainWindow, Ui_MainWindow):
 
     def openSpectrometer(self):
         if not self._is_spec_open:
-            devlist = DevListDialog()
-            if devlist.exec_() == QtGui.QDialog.Accepted and devlist.selected_dev:
+            devtable = DevTableDialog()
+            if devtable.exec_() == QtGui.QDialog.Accepted and devtable.selected_dev:
                 try:
-                    self.spec = sb.Spectrometer.from_serial_number(devlist.selected_dev)
+                    self.spec = sb.Spectrometer.from_serial_number(devtable.selected_dev)
                 except:
                     QtGui.QMessageBox.critical(self, 'Message',
                                                "Can't find spectrometer",
@@ -135,15 +134,13 @@ class Window(QMainWindow, Ui_MainWindow):
                                                         correct_nonlinearity=self.checkBoxNonlinear.isChecked()))
                     fn = os.path.join(self._multirundir, self._multirunfn+'_{0:.0f}ms_{1:d}_{2:02d}'.format(integration_time_ms, i, repeat))
                     self.saveCsv(fn, data=s)
-                    self.plot(s)
                     time.sleep(interval_s)
+            self.plot(s)
         else:
             self.spectrum = np.transpose(self.spec.spectrum(correct_dark_counts=self.checkBoxDark.isChecked(), \
                                                             correct_nonlinearity=self.checkBoxNonlinear.isChecked()))
             self.saveBackup()
-            for i in range(2):
-                self.plot(self.spectrum, mode='spectrum')
-                time.sleep(1)
+            self.plot(self.spectrum, mode='spectrum')
 
     def plot(self, data, mode='spectrum'):
         '''
@@ -247,7 +244,7 @@ class Window(QMainWindow, Ui_MainWindow):
             return
             
     def multiRun(self):
-        dialog = RunListDialog(runs=list(self._runs))
+        dialog = RunTableDialog(runs=list(self._runs))
         dialog.lineEditDir.setText(self._multirundir)
         dialog.lineEditFn.setText(self._multirunfn)
         if dialog.exec_() == QtGui.QDialog.Accepted:
