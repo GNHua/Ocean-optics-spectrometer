@@ -11,9 +11,14 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
+
+ui_module_path = os.path.abspath('./ui')
+if ui_module_path not in sys.path:
+    sys.path.insert(1,ui_module_path)
+    
 from run_table_dialog import RunTableDialog
 
-Ui_MainWindow, QMainWindow = uic.loadUiType('spectrometer.ui')
+Ui_MainWindow, QMainWindow = uic.loadUiType('ui/spectrometer.ui')
 class Window(QMainWindow, Ui_MainWindow):
     def __init__(self, ):
         super().__init__()
@@ -260,6 +265,10 @@ class Window(QMainWindow, Ui_MainWindow):
 
 if __name__ == '__main__':
     if 'debug' in sys.argv:
+        debug_module_path = os.path.abspath('./debug')
+        if debug_module_path not in sys.path:
+            sys.path.insert(1,debug_module_path)
+        
         import debug_sb as sb
         from debug_device_table_dialog import DevTableDialog
     else:

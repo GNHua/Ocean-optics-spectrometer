@@ -19,7 +19,7 @@ class Spectrometer:
         print('set integration time to %d ms' % (t/1000))
 
     def spectrum(self, correct_dark_counts=False, correct_nonlinearity=False):
-        return np.transpose(np.genfromtxt('test_data.csv', delimiter=','))
+        return np.transpose(np.genfromtxt('data/test_data.csv', delimiter=','))
 
     def tec_set_enable(self, enable):
         print('Enable TEC: ' + str(enable))

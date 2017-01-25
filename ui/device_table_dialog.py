@@ -30,7 +30,7 @@ class DevTableModel(QtCore.QAbstractTableModel):
             else:
                 return section+1
 
-Ui_Dialog, QDialog = uic.loadUiType('device_table_dialog.ui')
+Ui_Dialog, QDialog = uic.loadUiType('ui/device_table_dialog.ui')
 class DevTableDialog(QDialog, Ui_Dialog):
     '''
     A dialog window to select device.

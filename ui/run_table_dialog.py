@@ -1,3 +1,4 @@
+import os
 import sys
 from PyQt4 import QtCore, QtGui, uic
 
@@ -70,7 +71,7 @@ class RepeatDelegate(SpinBoxDelegate):
         spinbox.valueChanged.connect(self.currentValueChanged)
         return spinbox
 
-Ui_Dialog, QDialog = uic.loadUiType('run_table_dialog.ui')
+Ui_Dialog, QDialog = uic.loadUiType('ui/run_table_dialog.ui')
 class RunTableDialog(QDialog, Ui_Dialog):
     def __init__(self, runs=[]):
         super().__init__()
