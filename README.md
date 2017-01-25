@@ -18,6 +18,10 @@
 ```
 $ python spectrometer.py
 ```
+or
+```
+$ python spectrometer.py debug
+```
 
 ## To do
 
