@@ -11,14 +11,6 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt4agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
-
-debug = False
-if debug:
-    import debug_sb as sb
-    from debug_device_table_dialog import DevTableDialog
-else:
-    import seabreeze.spectrometers as sb
-    from device_table_dialog import DevTableDialog
 from run_table_dialog import RunTableDialog
 
 Ui_MainWindow, QMainWindow = uic.loadUiType('spectrometer.ui')
@@ -267,6 +259,13 @@ class Window(QMainWindow, Ui_MainWindow):
         event.accept()
 
 if __name__ == '__main__':
+    if 'debug' in sys.argv:
+        import debug_sb as sb
+        from debug_device_table_dialog import DevTableDialog
+    else:
+        import seabreeze.spectrometers as sb
+        from device_table_dialog import DevTableDialog
+
     app = QtGui.QApplication(sys.argv)
     main = Window()
     main.show()
