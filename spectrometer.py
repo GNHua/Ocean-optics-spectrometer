@@ -242,6 +242,7 @@ class Window(QMainWindow, Ui_MainWindow):
             return
 
     def multiRun(self):
+        # list(self._runs): copy self._runs instead of referring to it.
         dialog = RunTableDialog(runs=list(self._runs))
         dialog.lineEditDir.setText(self._multirundir)
         dialog.lineEditFn.setText(self._multirunfn)

@@ -1,9 +1,11 @@
-import os
 import sys
 from PyQt4 import QtCore, QtGui, uic
 
 class RunTableModel(QtCore.QAbstractTableModel):
     def __init__(self, runs=[]):
+        """
+        `runs` are a list of run settings, format [[8,1,1],[9,2,2]].
+        """
         super().__init__()
         self._headers = ['Integration (ms)', 'Interval (s)', 'Repeat']
         self._runs = runs
@@ -115,7 +117,7 @@ class RunTableDialog(QDialog, Ui_Dialog):
         self.model.layoutChanged.emit()
         
     def removeAll(self):
-        del self.model._runs[:]
+        del self.model._runs[:] # delete content, but keep the list
         self.model.layoutChanged.emit()
         
     def setDir(self):
