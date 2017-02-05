@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import getpass
+import argparse
 import numpy as np
 from PyQt4 import QtGui, QtCore, uic
 import matplotlib
@@ -20,7 +21,7 @@ from run_table_dialog import RunTableDialog
 
 Ui_MainWindow, QMainWindow = uic.loadUiType('ui/spectrometer.ui')
 class Window(QMainWindow, Ui_MainWindow):
-    def __init__(self, ):
+    def __init__(self):
         super().__init__()
         self.setupUi(self)
         self._is_spec_open = False
@@ -263,20 +264,32 @@ class Window(QMainWindow, Ui_MainWindow):
     def closeEven(self, event):
         self.quit()
         event.accept()
-
-if __name__ == '__main__':
-    if 'debug' in sys.argv:
+        
+        
+def main(args):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--debug', action='store_true', default=False)
+    args = parser.parse_args(args)
+    if args.debug:
         debug_module_path = os.path.abspath('./debug')
         if debug_module_path not in sys.path:
             sys.path.insert(1,debug_module_path)
-        
+
         import debug_sb as sb
         from debug_device_table_dialog import DevTableDialog
     else:
         import seabreeze.spectrometers as sb
         from device_table_dialog import DevTableDialog
-
+        
+    # make imported module global
+    globals()['sb'] = sb
+    globals()['DevTableDialog'] = DevTableDialog
+    
     app = QtGui.QApplication(sys.argv)
     main = Window()
     main.show()
     sys.exit(app.exec_())
+    
+
+if __name__ == '__main__':
+    main(sys.argv[1:])
