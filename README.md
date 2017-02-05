@@ -16,11 +16,13 @@
 
 ## Usage
 ```
-$ python spectrometer.py
-```
-or
-```
-$ python spectrometer.py debug
+$ python spectrometer.py -h
+
+usage: python spectrometer.py [-h] [-d]
+
+optional arguments:
+  -h, --help   show this help message and exit
+  -d, --debug  Use dummy module to debug
 ```
 
 ## To do

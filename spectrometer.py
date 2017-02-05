@@ -267,8 +267,9 @@ class Window(QMainWindow, Ui_MainWindow):
         
         
 def main(args):
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--debug', action='store_true', default=False)
+    parser = argparse.ArgumentParser(prog='python spectrometer.py')
+    parser.add_argument('-d', '--debug', action='store_true', default=False, 
+                        help='Use dummy module to debug')
     args = parser.parse_args(args)
     if args.debug:
         debug_module_path = os.path.abspath('./debug')
