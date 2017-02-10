@@ -261,7 +261,7 @@ class Window(QMainWindow, Ui_MainWindow):
             self.spec.close()
         sys.exit()
 
-    def closeEven(self, event):
+    def closeEvent(self, event):
         self.quit()
         event.accept()
         
