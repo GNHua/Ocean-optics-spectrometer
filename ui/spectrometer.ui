@@ -187,6 +187,7 @@ Correction</string>
     <addaction name="actionOpenDev"/>
     <addaction name="actionSpectrum"/>
     <addaction name="actionMultiRun"/>
+    <addaction name="actionSaturationTest"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menuDevice"/>
@@ -324,6 +325,11 @@ Correction</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+M</string>
+   </property>
+  </action>
+  <action name="actionSaturationTest">
+   <property name="text">
+    <string>Saturation Test</string>
    </property>
   </action>
  </widget>

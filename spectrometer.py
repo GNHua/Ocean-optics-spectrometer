@@ -40,6 +40,7 @@ class Window(QMainWindow, Ui_MainWindow):
         self.actionSpectrum.triggered.connect(self.getSpectrum)
         self.actionAbsorbance.triggered.connect(self.calcAbsorbance)
         self.actionMultiRun.triggered.connect(self.multiRun)
+        self.actionSaturationTest.triggered.connect(self.saturationTest)
 
         self.pushButtonSetInt.clicked.connect(self.setIntegrationTime)
 
@@ -151,7 +152,11 @@ class Window(QMainWindow, Ui_MainWindow):
             self.rmmpl()
         fig = Figure()
         ax = fig.add_subplot(111)
-        ax.plot(data[:,0], data[:,1])
+        if isinstance(data, list):
+            for d in data:
+                ax.plot(d[:,0], d[:,1])
+        else:
+            ax.plot(data[:,0], data[:,1])
         ax.set_xlabel('Wavelength (nm)')
         ax.set_ylabel(ylabel[mode])
         ax.set_ylim(0,)
@@ -255,6 +260,18 @@ class Window(QMainWindow, Ui_MainWindow):
         self.actionMultiRun.setChecked(multirunready)
         self.pushButtonSetInt.setEnabled(not multirunready)
         self.doubleSpinBoxInt.setEnabled(not multirunready)
+        
+    def saturationTest(self):
+        longExp = self.doubleSpinBoxInt.value()
+        shortExp = longExp / 4
+        self.spec.integration_time_micros(int(shortExp * 1000))
+        shortSpec = np.transpose(self.spec.spectrum(correct_dark_counts=self.checkBoxDark.isChecked(), \
+                                                    correct_nonlinearity=self.checkBoxNonlinear.isChecked()))
+        time.sleep(0.1)
+        self.spec.integration_time_micros(int(longExp * 1000))
+        longSpec = np.transpose(self.spec.spectrum(correct_dark_counts=self.checkBoxDark.isChecked(), \
+                                                   correct_nonlinearity=self.checkBoxNonlinear.isChecked()))
+        self.plot([shortSpec, longSpec])
 
     def quit(self):
         if self._is_spec_open:
