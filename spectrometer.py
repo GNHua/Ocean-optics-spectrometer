@@ -16,7 +16,7 @@ from matplotlib.backends.backend_qt4agg import (
 ui_module_path = os.path.abspath('./ui')
 if ui_module_path not in sys.path:
     sys.path.insert(1,ui_module_path)
-    
+
 from run_table_dialog import RunTableDialog
 
 Ui_MainWindow, QMainWindow = uic.loadUiType('ui/spectrometer.ui')
@@ -260,13 +260,14 @@ class Window(QMainWindow, Ui_MainWindow):
         self.actionMultiRun.setChecked(multirunready)
         self.pushButtonSetInt.setEnabled(not multirunready)
         self.doubleSpinBoxInt.setEnabled(not multirunready)
-        
+
     def saturationTest(self):
         longExp = self.doubleSpinBoxInt.value()
         shortExp = longExp / 4
         self.spec.integration_time_micros(int(shortExp * 1000))
         shortSpec = np.transpose(self.spec.spectrum(correct_dark_counts=self.checkBoxDark.isChecked(), \
                                                     correct_nonlinearity=self.checkBoxNonlinear.isChecked()))
+        shortSpec[:,1] *= 4
         time.sleep(0.1)
         self.spec.integration_time_micros(int(longExp * 1000))
         longSpec = np.transpose(self.spec.spectrum(correct_dark_counts=self.checkBoxDark.isChecked(), \
@@ -281,11 +282,11 @@ class Window(QMainWindow, Ui_MainWindow):
     def closeEvent(self, event):
         self.quit()
         event.accept()
-        
-        
+
+
 def main(args):
     parser = argparse.ArgumentParser(prog='python spectrometer.py')
-    parser.add_argument('-d', '--debug', action='store_true', default=False, 
+    parser.add_argument('-d', '--debug', action='store_true', default=False,
                         help='Use dummy module to debug')
     args = parser.parse_args(args)
     if args.debug:
@@ -298,16 +299,16 @@ def main(args):
     else:
         import seabreeze.spectrometers as sb
         from device_table_dialog import DevTableDialog
-        
+
     # make imported module global
     globals()['sb'] = sb
     globals()['DevTableDialog'] = DevTableDialog
-    
+
     app = QtGui.QApplication(sys.argv)
     main = Window()
     main.show()
     sys.exit(app.exec_())
-    
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])
