@@ -19,6 +19,8 @@ if ui_module_path not in sys.path:
 
 from run_table_dialog import RunTableDialog
 
+import threads
+
 Ui_MainWindow, QMainWindow = uic.loadUiType('ui/spectrometer.ui')
 class Window(QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -29,6 +31,8 @@ class Window(QMainWindow, Ui_MainWindow):
         self._multirundir = ''
         self._multirunfn = ''
         self.path = os.path.join('/')
+        
+        self._mrt = threads.MultiRunThread(None, None, False, False, '', '')
 
         self.connectUi()
 
@@ -41,8 +45,11 @@ class Window(QMainWindow, Ui_MainWindow):
         self.actionAbsorbance.triggered.connect(self.calcAbsorbance)
         self.actionMultiRun.triggered.connect(self.multiRun)
         self.actionSaturationTest.triggered.connect(self.saturationTest)
-
         self.pushButtonSetInt.clicked.connect(self.setIntegrationTime)
+        self._mrt.integrationTimeChanged.connect(self.doubleSpinBoxInt.setValue)
+        self._mrt.spectrumAcquiredArr.connect(self.saveBackup)
+        self._mrt.spectrumAcquiredArr.connect(self.plot)
+        self._mrt.spectrumAcquiredArrStr.connect(self.saveCsv)
 
     def addmpl(self, fig):
          self.canvas = FigureCanvas(fig)
@@ -86,6 +93,7 @@ class Window(QMainWindow, Ui_MainWindow):
         self.checkBoxNonlinear.setEnabled(self.spec._has_nonlinearity_coeffs)
         self.checkBoxNonlinear.setChecked(self.spec._has_nonlinearity_coeffs)
         self._is_spec_open = True
+        self._mrt.spec = self.spec
         self.actionOpenDev.setText('&Close Device')
         self.actionOpenDev.setToolTip('Close Device')
 
@@ -116,6 +124,7 @@ class Window(QMainWindow, Ui_MainWindow):
         self.checkBoxNonlinear.setChecked(False)
         self.checkBoxNonlinear.setEnabled(False)
         self._is_spec_open = False
+        self._mrt.spec = None
         self.actionOpenDev.setText('&Open Device')
         self.actionOpenDev.setToolTip('Open Device')
 
@@ -123,22 +132,15 @@ class Window(QMainWindow, Ui_MainWindow):
         self.spec.integration_time_micros(int(self.doubleSpinBoxInt.value() * 1000))
 
     def getSpectrum(self):
+        correct_dark_counts = self.checkBoxDark.isChecked()
+        correct_nonlinearity = self.checkBoxNonlinear.isChecked()
         if self.actionMultiRun.isChecked():
-            for i, run in enumerate(self._runs):
-                integration_time_ms, interval_s, repeat = run
-                self.spec.integration_time_micros(int(integration_time_ms * 1000))
-                self.doubleSpinBoxInt.setValue(integration_time_ms)
-                for j in range(repeat):
-                    s = np.transpose(self.spec.spectrum(correct_dark_counts=self.checkBoxDark.isChecked(), \
-                                                        correct_nonlinearity=self.checkBoxNonlinear.isChecked()))
-                    fn = os.path.join(self._multirundir, self._multirunfn+'_{0:.0f}ms_{1:d}_{2:02d}'.format(integration_time_ms, i, repeat))
-                    self.saveCsv(fn, data=s)
-                    self.saveBackup(data=s)
-                    time.sleep(interval_s)
-            self.plot(s)
+            self._mrt.runs = self._runs
+            self._mrt.dark = correct_dark_counts
+            self._mrt.linear = correct_nonlinearity
+            self._mrt.start()
         else:
-            self.spectrum = np.transpose(self.spec.spectrum(correct_dark_counts=self.checkBoxDark.isChecked(), \
-                                                            correct_nonlinearity=self.checkBoxNonlinear.isChecked()))
+            self.spectrum = self.spec.spectrum(correct_dark_counts, correct_nonlinearity).T
             self.saveBackup(self.spectrum)
             self.plot(self.spectrum, mode='spectrum')
 
@@ -256,6 +258,8 @@ class Window(QMainWindow, Ui_MainWindow):
             self._runs = list(dialog.model._runs)
             self._multirundir = dialog.lineEditDir.text()
             self._multirunfn = os.path.splitext(dialog.lineEditFn.text())[0]
+            self._mrt.dir = self._multirundir
+            self._mrt.fn = self._multirunfn
         multirunready = (len(self._runs) > 0) and bool(self._multirundir) and bool(self._multirunfn)
         self.actionMultiRun.setChecked(multirunready)
         self.pushButtonSetInt.setEnabled(not multirunready)
