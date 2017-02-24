@@ -73,15 +73,8 @@ class Window(QMainWindow, Ui_MainWindow):
     def addmpl(self):
         self._canvas = MyCanvas()
         self.mplvl.addWidget(self._canvas.canvas)
-        # self.canvas.draw()
         self._toolbar = NavigationToolbar(self._canvas.canvas, self.mplwindow, coordinates=True)
         self.mplvl.addWidget(self._toolbar)
-
-    def rmmpl(self):
-         self.mplvl.removeWidget(self._canvas)
-         self._canvas.close()
-         self.mplvl.removeWidget(self._toolbar)
-         self._toolbar.close()
 
     def openSpectrometer(self):
         if not self._is_spec_open:
