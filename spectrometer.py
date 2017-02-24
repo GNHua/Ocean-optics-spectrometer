@@ -21,6 +21,25 @@ from run_table_dialog import RunTableDialog
 
 import threads
 
+class MyCanvas: 
+    def __init__(self): 
+        self.Fig = Figure() 
+        self.ax = self.Fig.add_subplot(111) 
+        self.canvas = FigureCanvas(self.Fig) 
+
+    def update(self, data):
+        self.ax.cla()
+        self.ax.set_xlabel('Wavelength (nm)')
+        self.ax.set_ylabel('Intensity')
+        if isinstance(data, list):
+            for d in data:
+                self.ax.plot(d[:,0], d[:,1])
+                self.ax.set_ylim(0,)
+        else:
+            self.ax.plot(data[:,0], data[:,1])
+            self.ax.set_ylim(0,)
+        self.canvas.draw()
+
 Ui_MainWindow, QMainWindow = uic.loadUiType('ui/spectrometer.ui')
 class Window(QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -33,6 +52,7 @@ class Window(QMainWindow, Ui_MainWindow):
         self.path = os.path.join('/')
         
         self._mrt = threads.MultiRunThread(None, None, False, False, '', '')
+        self.addmpl()
 
         self.connectUi()
 
@@ -42,7 +62,6 @@ class Window(QMainWindow, Ui_MainWindow):
         self.actionQuit.triggered.connect(self.quit)
         self.actionOpenDev.triggered.connect(self.openSpectrometer)
         self.actionSpectrum.triggered.connect(self.getSpectrum)
-        self.actionAbsorbance.triggered.connect(self.calcAbsorbance)
         self.actionMultiRun.triggered.connect(self.multiRun)
         self.actionSaturationTest.triggered.connect(self.saturationTest)
         self.pushButtonSetInt.clicked.connect(self.setIntegrationTime)
@@ -51,18 +70,18 @@ class Window(QMainWindow, Ui_MainWindow):
         self._mrt.spectrumAcquiredArr.connect(self.plot)
         self._mrt.spectrumAcquiredArrStr.connect(self.saveCsv)
 
-    def addmpl(self, fig):
-         self.canvas = FigureCanvas(fig)
-         self.mplvl.addWidget(self.canvas)
-         self.canvas.draw()
-         self.toolbar = NavigationToolbar(self.canvas, self.mplwindow, coordinates=True)
-         self.mplvl.addWidget(self.toolbar)
+    def addmpl(self):
+        self._canvas = MyCanvas()
+        self.mplvl.addWidget(self._canvas.canvas)
+        # self.canvas.draw()
+        self._toolbar = NavigationToolbar(self._canvas.canvas, self.mplwindow, coordinates=True)
+        self.mplvl.addWidget(self._toolbar)
 
     def rmmpl(self):
-         self.mplvl.removeWidget(self.canvas)
-         self.canvas.close()
-         self.mplvl.removeWidget(self.toolbar)
-         self.toolbar.close()
+         self.mplvl.removeWidget(self._canvas)
+         self._canvas.close()
+         self.mplvl.removeWidget(self._toolbar)
+         self._toolbar.close()
 
     def openSpectrometer(self):
         if not self._is_spec_open:
@@ -142,27 +161,11 @@ class Window(QMainWindow, Ui_MainWindow):
         else:
             self.spectrum = self.spec.spectrum(correct_dark_counts, correct_nonlinearity).T
             self.saveBackup(self.spectrum)
-            self.plot(self.spectrum, mode='spectrum')
+            self.plot(self.spectrum)
 
-    def plot(self, data, mode='spectrum'):
-        '''
-        Get the name and directory
-            mode: 'spectrum', 'absorbance'
-        '''
-        ylabel = {'spectrum': 'Intensity', 'absorbance': 'Absorbance'}
-        if hasattr(self, 'canvas'):
-            self.rmmpl()
-        fig = Figure()
-        ax = fig.add_subplot(111)
-        if isinstance(data, list):
-            for d in data:
-                ax.plot(d[:,0], d[:,1])
-        else:
-            ax.plot(data[:,0], data[:,1])
-        ax.set_xlabel('Wavelength (nm)')
-        ax.set_ylabel(ylabel[mode])
-        ax.set_ylim(0,)
-        self.addmpl(fig)
+    def plot(self, data):
+        '''Get the name and directory'''
+        self._canvas.update(data)
 
     def saveBackup(self, data):
         if not os.path.exists('./backup'):
@@ -208,23 +211,6 @@ class Window(QMainWindow, Ui_MainWindow):
                 ha='left', va='top', transform=ax.transAxes)
         plt.savefig(filename+'.png')
         plt.close('all')
-
-    def calcAbsorbance(self):
-        '''
-        Select baseline data file and calculate absorbance
-        '''
-        fn = self.getFileName(1)
-        if fn:
-            begin_index = 50
-            end_index = 998
-            noresin = np.genfromtxt(fn, delimiter=',')
-            numerator = self.spectrum[begin_index:end_index,1]
-            denominator = noresin[begin_index:end_index,1]
-            absorbance = -np.log10(numerator/denominator)
-            print(absorbance.shape)
-            data = np.array([self.spectrum[begin_index:end_index,0], absorbance]).T
-            print(data.shape)
-            self.plot(data, mode='absorbance')
 
     def getFileName(self, mode):
         '''
