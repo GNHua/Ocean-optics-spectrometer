@@ -165,7 +165,7 @@ Correction</string>
      <x>0</x>
      <y>0</y>
      <width>696</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="nativeMenuBar">
@@ -328,6 +328,9 @@ Correction</string>
    </property>
   </action>
   <action name="actionSaturationTest">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Saturation Test</string>
    </property>

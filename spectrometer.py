@@ -21,22 +21,26 @@ from run_table_dialog import RunTableDialog
 
 import threads
 
-class MyCanvas: 
-    def __init__(self): 
-        self.Fig = Figure() 
-        self.ax = self.Fig.add_subplot(111) 
-        self.canvas = FigureCanvas(self.Fig) 
+class MyCanvas:
+    def __init__(self):
+        self.Fig = Figure()
+        self.ax = self.Fig.add_subplot(111)
+        self.canvas = FigureCanvas(self.Fig)
 
     def update(self, data):
         self.ax.cla()
         self.ax.set_xlabel('Wavelength (nm)')
         self.ax.set_ylabel('Intensity')
         if isinstance(data, list):
+            ymax = max([max(d[:,1]) for d in data])
             for d in data:
                 self.ax.plot(d[:,0], d[:,1])
-                self.ax.set_ylim(0,)
         else:
+            ymax = max(data[:,1])
             self.ax.plot(data[:,0], data[:,1])
+        if ymax > 70000:
+            self.ax.set_ylim(0, 70000)
+        else:
             self.ax.set_ylim(0,)
         self.canvas.draw()
 
@@ -50,7 +54,7 @@ class Window(QMainWindow, Ui_MainWindow):
         self._multirundir = ''
         self._multirunfn = ''
         self.path = os.path.join('/')
-        
+
         self._mrt = threads.MultiRunThread(None, None, False, False, '', '')
         self.addmpl()
 
@@ -92,6 +96,7 @@ class Window(QMainWindow, Ui_MainWindow):
         self.actionSpectrum.setEnabled(self._is_spec_open)
         self.actionOpenDev.setChecked(self._is_spec_open)
         self.actionMultiRun.setEnabled(self._is_spec_open)
+        self.actionSaturationTest.setEnabled(self._is_spec_open)
 
     def initSpectrometer(self):
         self.initTEC()
